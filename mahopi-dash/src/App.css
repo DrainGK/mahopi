@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .remplissage {
+    animation: fillBackground 0.4s ease-out 0.3s 1 normal forwards ;
+  }
+
+  @keyframes fillBackground {
+    0% {
+      width: 0%;
+      border-radius: 0px 0px 25px 0px;
+      background-color: var(--color-gray-900);
+      border-top-left-radius: 25px;
+      border-bottom-right-radius: 25px;
+    }
+    100% {
+      width: 100%;
+      border-radius: 0px 0px 0px 0px;
+      background-color: var(--color-gray-900);
+      border-top-left-radius: 25px;
+      border-bottom-right-radius: 25px;
+    }
+  }
+
+  @keyframes fill {
+    0% {
+      background-color: var(--color-gray-900);
+      transform: scaleX(0); /* Taille initiale à 0 */
+      border-top-left-radius: 25px; /* Coins arrondis au début */
+      border-bottom-right-radius: 25px; /* Coins arrondis au début */
+    }
+    100% {
+      background-color: var(--color-gray-900);
+      transform: scaleX(1); /* Capsule à pleine largeur */
+      border-top-left-radius: 25px; /* Coins deviennent carrés */
+      border-bottom-right-radius: 25px; /* Coins deviennent carrés */
+    }
+  }
+
+  @keyframes explode {
+    from {
+      transform: translate(0%,0%);
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+      transform: translate(var(--tw-translate-x), var(--tw-translate-y));
+    }
+  }
+
+  .capsule {
+    transform-origin: left; /* Grandit de la gauche vers la droite */
+  }
+}
