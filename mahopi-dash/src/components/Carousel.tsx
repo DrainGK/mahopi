@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { motion } from "framer-motion";
+import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight, ArrowLeft, Heart, CircleSmall, X } from "lucide-react"
 
 const images_Data = [
   {
@@ -32,37 +33,76 @@ const images_Data = [
   },
 ];
 
-const Carousel: React.FC = () => {
-  const [images, setImages] = useState(images_Data);
+const LG_SIZE ={
+  cardH: 400,
+  cardW: 300,
+  xOffset: 350,
+  icon: 36,
+}
 
-  // Fonction de défilement du carousel.
+const SM_SIZE ={
+  cardH: 350,
+  cardW: 250,
+  xOffset: 300,
+  icon: 24,
+}
+
+const Carousel: React.FC = () => {
+    const [images, setImages] = useState(images_Data);
+    const [activeIndex, setActiveIndex] = useState(0);
+    const [carouselSizes, setCarouselSizes] = useState(LG_SIZE);
+    const [isOpen, setIsOpen] = useState(false);
+    const [selectedImage, setSelectedImage] = useState("")
+
   function handleCarousel(position: number) {
     const copy = [...images];
+    let newIndex = activeIndex;
     if (position > 0) {
-      for (let i = position; i > 0; i--) {
-        const firstEl = copy.shift();
-        if (!firstEl) return;
-        copy.push(firstEl);
+      for (let i = 0; i < position; i++) {
+        const first = copy.shift();
+        if (first) copy.push(first);
+        newIndex = (newIndex + 1) % images.length; // Défilement circulaire
       }
     } else if (position < 0) {
-      for (let i = position; i < 0; i++) {
-        const lastEl = copy.pop();
-        if (!lastEl) return;
-        copy.unshift(lastEl);
+      for (let i = 0; i < -position; i++) {
+        const last = copy.pop();
+        if (last) copy.unshift(last);
+        newIndex = (newIndex - 1 + images.length) % images.length; // Défilement circulaire
       }
     }
     setImages(copy);
+    setActiveIndex(newIndex);
   }
 
-  // Réorganisation pour que la carte active (images[0]) soit affichée au centre.
-  // Pour 5 cartes, l'index central sera mid (dans ce cas 2).
+  function handleImageClick(src: string){
+    setSelectedImage(src);
+    setIsOpen(true)
+  }
+
+  const indicatorVariants = {
+    active: { scale: 1.3, opacity: 1, transition: {  type: "spring", mass: 2, stiffness: 400, damping: 10 } },
+    inactive: { scale: 1, opacity: 1, transition: {  duration: 0.3 } },
+  };
+
+  useEffect(() => {
+    const updateCarouselSize = () => {
+      const { matches } = window.matchMedia("(min-width: 640px)");
+      setCarouselSizes(matches ? LG_SIZE : SM_SIZE);
+    };
+  
+    updateCarouselSize(); // Appel initial pour définir la taille dès le montage
+  
+    window.addEventListener("resize", updateCarouselSize);
+  
+    return () => window.removeEventListener("resize", updateCarouselSize);
+  }, []);
 
   return (
-    <div className="relative w-full h-screen flex flex-col items-center justify-between">
+    <div className="relative mt-16 w-full h-screen flex flex-col items-center justify-between">
       {images.slice(0, 5).map((img, i) => {
         const relativeIndex = i - 2; // La carte active aura relativeIndex === 0
         // Décalage horizontal (exemple : 300px par carte)
-        const x = relativeIndex * 350;
+        const x = relativeIndex * carouselSizes.xOffset;
         // Décalage vertical pour les cartes autour de la carte active
         const distance = Math.abs(relativeIndex);
         let y = 0;
@@ -79,7 +119,7 @@ const Carousel: React.FC = () => {
             style={{ zIndex: relativeIndex === 0 ? 10 : 5 }}
           >
             <motion.div
-                className="rounded-xl h-[400px] w-[300px] bg-[size:110%] hover:bg-[size:115%] hover:cursor-pointer transition-[background-size] duration-200"
+                className="rounded-xl bg-[size:110%] hover:bg-[size:115%] hover:cursor-pointer transition-[background-size] duration-200"
                 initial={{ opacity: 0 }}
                 animate={{ x, y, rotate: rotation, opacity: 1 }}
                 transition={{
@@ -89,30 +129,101 @@ const Carousel: React.FC = () => {
                     opacity: { delay: 0.3, duration: 0.1 }
                 }}
                 style={{
+                    width: carouselSizes.cardW,
+                    height: carouselSizes.cardH,
                     backgroundImage: `url(${img.src})`,
                     backgroundPosition: "center",
                 }}
-                onClick={()=>console.log("click")
-                }
+                onClick={()=>handleImageClick(img.src)}
             />
-            
           </div>
             );
         })}
-        <button
-        onClick={() => handleCarousel(-1)}
-        className="absolute left-4 text-white font-bold text-6xl border-2 hover:text-amber-500 hover:border-amber-500 z-20"
-      >
-        ←
-      </button>
-      <button
-        onClick={() => handleCarousel(1)}
-        className="absolute right-4 text-white font-bold text-6xl border-2 hover:text-amber-500 hover:border-amber-500 z-20"
-      >
-        →
-      </button>
+        <div className='absolute w-fit flex justify-between items-center z-5 bottom-1/3'>
+            <motion.button
+                onClick={() => handleCarousel(-1)}
+                className="p-4 rounded-full text-[#FFB8E0] bg-white font-bold text-6xl hover:text-[#EC7FA9]"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            >
+                <ArrowLeft size={carouselSizes.icon} />
+            </motion.button>
+            <ul className='flex mx-15'>
+            {images.map((img, i) => (
+            <li key={img.id}>
+            <motion.div
+              variants={indicatorVariants}
+              initial="inactive"
+              animate={i === activeIndex ? "active" : ""}
+            >
+              {i === activeIndex ? (
+                <Heart size={carouselSizes.icon} fill="#EC7FA9" strokeWidth={0} />
+              ) : (
+                <CircleSmall size={carouselSizes.icon} fill="white" strokeWidth={0} />
+              )}
+            </motion.div>
+          </li>
+          ))}
+            </ul>
+            <motion.button
+                onClick={() => handleCarousel(1)}
+                className="p-4 rounded-full text-[#FFB8E0] bg-white font-bold text-6xl hover:text-[#EC7FA9]"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            >
+                <ArrowRight size={carouselSizes.icon} />
+            </motion.button>
         </div>
+        <Modal src={selectedImage} isOpen={isOpen} setIsOpen={setIsOpen} heightImg={carouselSizes.cardH} widthImg={carouselSizes.cardW}/>
+    </div>
   );
+
 };
+
+const Modal = ({ src , isOpen, setIsOpen, heightImg, widthImg }:{ src: string; isOpen: boolean; setIsOpen:Dispatch<SetStateAction<boolean>>; heightImg: number; widthImg: number}) => {
+      return (
+        <AnimatePresence>
+            {isOpen && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setIsOpen(false)}
+                    className="backdrop-blur p-8 fixed inset-0 z-50 grid place-items-center cursor-pointer"
+                >
+                    <motion.div
+                        className='relative rounded-xl bg-[size:110%]'
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1.5, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                            width: widthImg,
+                            height: heightImg,
+                            backgroundImage: `url(${src})`,
+                            backgroundPosition: "center",
+                        }}
+                    >
+                        <motion.div
+                            initial={{  rotate: -45 }}
+                            animate={{  rotate: 0 }}
+                            whileHover={{ scale: 1.1, rotate: 45 }}
+                            transition={{
+                                rotate: { type: "spring", mass: 2, stiffness: 400, damping: 10, },
+                                scale: { type: "spring", mass: 2, stiffness: 400, damping: 10 },
+                            }}
+                            className='absolute right-0 translate-x-1/2 translate-y-[-50%] p-2 w-fit rounded-full text-[#FFB8E0] bg-white'
+                            onClick={()=>setIsOpen(false)}
+                        >
+                            <X size={24} strokeWidth={3}/>
+                        </motion.div>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>
+      )
+}
 
 export default Carousel;

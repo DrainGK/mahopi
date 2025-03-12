@@ -32,7 +32,7 @@ const EmojisExplosion: React.FC<ExplosionProps> = ({ emojis }) => {
     };
 
     return (
-        <div className="relative z-10">
+        <div className="relative w-fit z-10">
             <button 
                 onClick={handleClick}
                 onMouseDown={()=>setIsClicked(false)}
