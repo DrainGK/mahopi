@@ -17,19 +17,31 @@ const images_Data = [
   },
   {
     src: "https://images.unsplash.com/photo-1741091756497-10c964acc4f6?q=80&w=1972&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    id: 5,
+    id: 4,
   },
   {
     src: "https://images.unsplash.com/photo-1735480222193-3fe22ffd70b6?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    id: 6,
+    id: 5,
   },
   {
     src: "https://images.unsplash.com/photo-1741367658528-8134fab3b67d?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    id: 7,
+    id: 6,
   },
   {
     src: "https://images.unsplash.com/photo-1741298856762-1ff2f1204bc8?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    id: 7,
+  },
+  {
+    src: "https://images.unsplash.com/photo-1741471884167-a2b08fb14a3e?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     id: 8,
+  },
+  {
+    src: "https://images.unsplash.com/photo-1734377543826-1a64e1d4c5fe?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    id: 9,
+  },
+  {
+    src: "https://images.unsplash.com/photo-1740738895087-ec912c4718af?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    id: 10,
   },
 ];
 
@@ -42,7 +54,7 @@ const LG_SIZE ={
 
 const SM_SIZE ={
   cardH: 350,
-  cardW: 250,
+  cardW: 261,
   xOffset: 300,
   icon: 24,
 }
@@ -98,7 +110,7 @@ const Carousel: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative mt-16 w-full h-screen flex flex-col items-center justify-between">
+    <div className="relative w-full h-screen flex flex-col items-center justify-between">
       {images.slice(0, 5).map((img, i) => {
         const relativeIndex = i - 2; // La carte active aura relativeIndex === 0
         // Décalage horizontal (exemple : 300px par carte)
@@ -149,7 +161,7 @@ const Carousel: React.FC = () => {
             >
                 <ArrowLeft size={carouselSizes.icon} />
             </motion.button>
-            <ul className='flex mx-15'>
+            <ul className='flex mx-6 md:mx-15'>
             {images.map((img, i) => (
             <li key={img.id}>
             <motion.div
@@ -196,7 +208,7 @@ const Modal = ({ src , isOpen, setIsOpen, heightImg, widthImg }:{ src: string; i
                     <motion.div
                         className='relative rounded-xl bg-[size:110%]'
                         initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1.5, opacity: 1 }}
+                        animate={{ scale: 1.3, opacity: 1 }}
                         exit={{ scale: 0, opacity: 0 }}
                         onClick={(e) => e.stopPropagation()}
                         style={{

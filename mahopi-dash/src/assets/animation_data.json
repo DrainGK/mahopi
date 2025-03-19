@@ -1,0 +1,16 @@
+{
+    "bounceOnClick": {
+      "trigger": "click",
+      "target": ".contender",
+      "type": "both",
+      "animation": "animate__bounce",
+      "sound": "assets/soudEffects/correct-answer.mp3",
+      "element": "image.png"
+    },
+    "swingOnHover": {
+      "trigger": "click",
+      "target": ".zizi",
+      "type": "animation",
+      "animation": "animate__swing"
+    }
+  }
