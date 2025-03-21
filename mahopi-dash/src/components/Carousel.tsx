@@ -1,49 +1,7 @@
 import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, ArrowLeft, Heart, CircleSmall, X } from "lucide-react"
-
-const images_Data = [
-  {
-    src: "https://images.unsplash.com/photo-1741334632363-58022899ce91?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3",
-    id: 1,
-  },
-  {
-    src: "https://plus.unsplash.com/premium_photo-1738854511313-799f13b4d3ff?q=80&w=1935&auto=format&fit=crop&ixlib=rb-4.0.3",
-    id: 2,
-  },
-  {
-    src: "https://images.unsplash.com/photo-1737044263770-9ddf6c5654c4?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3",
-    id: 3,
-  },
-  {
-    src: "https://images.unsplash.com/photo-1741091756497-10c964acc4f6?q=80&w=1972&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    id: 4,
-  },
-  {
-    src: "https://images.unsplash.com/photo-1735480222193-3fe22ffd70b6?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    id: 5,
-  },
-  {
-    src: "https://images.unsplash.com/photo-1741367658528-8134fab3b67d?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    id: 6,
-  },
-  {
-    src: "https://images.unsplash.com/photo-1741298856762-1ff2f1204bc8?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    id: 7,
-  },
-  {
-    src: "https://images.unsplash.com/photo-1741471884167-a2b08fb14a3e?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    id: 8,
-  },
-  {
-    src: "https://images.unsplash.com/photo-1734377543826-1a64e1d4c5fe?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    id: 9,
-  },
-  {
-    src: "https://images.unsplash.com/photo-1740738895087-ec912c4718af?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    id: 10,
-  },
-];
+import useImageStore from '../useImageStore';
 
 const LG_SIZE ={
   cardH: 400,
@@ -60,15 +18,20 @@ const SM_SIZE ={
 }
 
 const Carousel: React.FC = () => {
-    const [images, setImages] = useState(images_Data);
-    const [activeIndex, setActiveIndex] = useState(0);
-    const [carouselSizes, setCarouselSizes] = useState(LG_SIZE);
-    const [isOpen, setIsOpen] = useState(false);
-    const [selectedImage, setSelectedImage] = useState("")
+  const images = useImageStore((state) => state.images);
+  const activeIndex = useImageStore((state) => state.activeIndex);
+  const setImages = useImageStore((state) => state.setImages);
+  const setActiveIndex = useImageStore((state) => state.setActiveIndex);
+
+  const [carouselSizes, setCarouselSizes] = useState(LG_SIZE);
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState('');
 
   function handleCarousel(position: number) {
+    // Crée une copie des images pour ne pas muter directement l'état du store
     const copy = [...images];
     let newIndex = activeIndex;
+
     if (position > 0) {
       for (let i = 0; i < position; i++) {
         const first = copy.shift();
