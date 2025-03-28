@@ -1,85 +1,177 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { supabase } from './supabaseClient';
+import useUserStore from './UseUserStore';
 
 export interface Image {
-    id: number;
-    src: string;
-  }
-  
-  export interface ImageStore {
-    images: Image[];
-    activeIndex: number;
-    setImages: (images: Image[]) => void;
-    setActiveIndex: (index: number) => void;
-    updateImageAt: (index: number, newSrc: string) => void;
-    removeImageAt: (index: number) => void;
-  }
+  id: number;
+  src: string;
+}
 
-  const initialImages: Image[] = [
+export interface ImageStore {
+  images: Image[];
+  loading: boolean;
+  error: string | null;
+  activeIndex: number;
+  setImages: (images: Image[]) => void;
+  setActiveIndex: (index: number) => void;
+  fetchImages: () => Promise<void>;
+  uploadImage: (index: number, file: File) => Promise<void>;
+  removeImage: (index: number) => Promise<void>;
+}
+
+const initialImages: Image[] = [
+  { id: 0, src: "" },
+  { id: 1, src: "" },
+  { id: 2, src: "" },
+  { id: 3, src: "" },
+  { id: 4, src: "" },
+];
+
+const useImageStore = create<ImageStore>()(
+  persist(
+    (set, get) => ({
+      images: initialImages,
+      loading: false,
+      error: null,
+      activeIndex: 0, // Ajouter activeIndex à l'état initial
+      setImages: (images: Image[]) => set({ images }),
+
+      setActiveIndex: (index: number) => set({ activeIndex: index }),
+
+      fetchImages: async () => {
+        set({ loading: true, error: null });
+        const userId = useUserStore.getState().user.id;
+        if (!userId) {
+          set({ loading: false, error: 'Utilisateur non connecté' });
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from('photos')
+          .select('id, file_url, slot_index')
+          .eq('user_id', userId)
+          .order('slot_index', { ascending: true });
+
+        if (error) {
+          console.error('Erreur fetchImages:', error);
+          set({ loading: false, error: 'Erreur lors du chargement des images' });
+          return;
+        }
+
+        let updatedImages = [...initialImages];
+        if (data) {
+          data.forEach((photo: any) => {
+            updatedImages[photo.slot_index] = {
+              id: photo.id,
+              src: photo.file_url,
+            };
+          });
+        }
+
+        set({ images: updatedImages, loading: false, activeIndex: 0 }); // Réinitialiser activeIndex à 0 après fetch
+      },
+
+      uploadImage: async (index: number, file: File) => {
+        set({ loading: true, error: null });
+        const userId = useUserStore.getState().user.id;
+        const { images } = get();
+        if (!userId) {
+          set({ loading: false, error: 'Utilisateur non connecté' });
+          return;
+        }
+
+        if (images[index].src !== "") {
+          await get().removeImage(index);
+        }
+
+        const fileName = `${userId}/${Date.now()}-${file.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from('image')
+          .upload(fileName, file);
+
+        if (uploadError) {
+          console.error('Erreur upload:', uploadError);
+          set({ loading: false, error: 'Erreur lors de l\'upload de l\'image' });
+          return;
+        }
+
+        const { data: publicUrlData } = supabase.storage
+          .from('image')
+          .getPublicUrl(fileName);
+
+        const fileUrl = publicUrlData.publicUrl;
+
+        const { data, error: insertError } = await supabase
+          .from('photos')
+          .insert({ user_id: userId, file_url: fileUrl, slot_index: index })
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error('Erreur insert:', insertError);
+          set({ loading: false, error: `Erreur lors de l'enregistrement de l'image: ${insertError.message}` });
+          return;
+        }
+
+        set((state) => {
+          const updatedImages = [...state.images];
+          updatedImages[index] = { id: data.id, src: fileUrl };
+          return { images: updatedImages, loading: false };
+        });
+      },
+
+      removeImage: async (index: number) => {
+        set({ loading: true, error: null });
+        const userId = useUserStore.getState().user.id;
+        const { images, activeIndex } = get();
+        if (!userId || images[index].src === "") {
+          set({ loading: false });
+          return;
+        }
+      
+        // Supprimer la ligne dans la table photos
+        const { error } = await supabase
+          .from('photos')
+          .delete()
+          .eq('user_id', userId)
+          .eq('slot_index', index);
+      
+        if (error) {
+          console.error('Erreur removeImage:', error);
+          set({ loading: false, error: 'Erreur lors de la suppression de l\'image' });
+          return;
+        }
+      
+        // Mettre à jour les images localement
+        const updatedImages = [...images];
+        updatedImages[index] = { id: index, src: "" };
+      
+        // Ajuster activeIndex si nécessaire
+        let newActiveIndex = activeIndex;
+        const hasImages = updatedImages.some((img) => img.src !== "");
+      
+        if (!hasImages) {
+          newActiveIndex = 0;
+        } else if (index === activeIndex) {
+          let nextIndex = (activeIndex + 1) % updatedImages.length;
+          while (updatedImages[nextIndex].src === "" && nextIndex !== activeIndex) {
+            nextIndex = (nextIndex + 1) % updatedImages.length;
+          }
+          newActiveIndex = updatedImages[nextIndex].src !== "" ? nextIndex : 0;
+        } else if (index < activeIndex) {
+          newActiveIndex = activeIndex - 1;
+          if (newActiveIndex < 0) newActiveIndex = 0;
+        }
+      
+        set({ images: updatedImages, activeIndex: newActiveIndex, loading: false });
+      },
+    }),
     {
-        src: "https://images.unsplash.com/photo-1741334632363-58022899ce91?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3",
-        id: 1,
-      },
-      {
-        src: "https://plus.unsplash.com/premium_photo-1738854511313-799f13b4d3ff?q=80&w=1935&auto=format&fit=crop&ixlib=rb-4.0.3",
-        id: 2,
-      },
-      {
-        src: "https://images.unsplash.com/photo-1737044263770-9ddf6c5654c4?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3",
-        id: 3,
-      },
-      {
-        src: "https://images.unsplash.com/photo-1741091756497-10c964acc4f6?q=80&w=1972&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-        id: 4,
-      },
-      {
-        src: "https://images.unsplash.com/photo-1735480222193-3fe22ffd70b6?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-        id: 5,
-      },
-      {
-        src: "https://images.unsplash.com/photo-1741367658528-8134fab3b67d?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-        id: 6,
-      },
-      {
-        src: "https://images.unsplash.com/photo-1741298856762-1ff2f1204bc8?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-        id: 7,
-      },
-      {
-        src: "https://images.unsplash.com/photo-1741471884167-a2b08fb14a3e?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-        id: 8,
-      },
-      {
-        src: "https://images.unsplash.com/photo-1734377543826-1a64e1d4c5fe?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-        id: 9,
-      },
-      {
-        src: "https://images.unsplash.com/photo-1740738895087-ec912c4718af?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-        id: 10,
-      },
-  ];
-
-  const useImageStore = create<ImageStore>((set) => ({
-    images: initialImages,
-    activeIndex: 0,
-    setImages: (images: Image[]) => set({ images }),
-    setActiveIndex: (index: number) => set({ activeIndex: index }),
-    updateImageAt: (index: number, newSrc: string) => {
-        set((state) => {
-          const updated = [...state.images];
-          if (updated[index]) {
-            updated[index] = { ...updated[index], src: newSrc };
-          }
-          return { images: updated };
-        });
-      },
-      removeImageAt: (index: number) => {
-        set((state) => {
-          const updated = [...state.images];
-          if (updated[index]) {
-            updated[index] = { ...updated[index], src: '' };
-          }
-          return { images: updated };
-        });
-      },
-  }));
+      name: 'image-store',
+      partialize: (state) => ({ images: state.images, activeIndex: state.activeIndex }), // Persister activeIndex
+    }
+  )
+);
 
 export default useImageStore;
