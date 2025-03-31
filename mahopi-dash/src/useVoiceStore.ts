@@ -112,17 +112,17 @@ const useVoiceStore = create<VoiceStore>()((set, get) => ({
             .insert({
                 user_id: userId, // Utilise userId directement depuis auth
                 file_url: fileUrl,
-                slot_index: index,
                 title,
+                slot_index: index,
             })
             .select()
             .single();
     
-        if (insertError) {
-            console.error('Error insert: ', insertError);
-            set({ loading: false, error: `Error while saving audio file: ${insertError.message}` });
-            return;
-        }
+            if (insertError) {
+                console.error('Error insert: ', insertError.message, insertError.details);
+                set({ loading: false, error: `Error while saving audio file: ${insertError.message} - ${insertError.details}` });
+                return;
+            }
     
         set((state) => {
             const updatedVoices = [...state.voices];

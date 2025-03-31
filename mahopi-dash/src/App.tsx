@@ -1,5 +1,5 @@
 import { Menu, X } from 'lucide-react'
-import { motion, useVelocity } from "framer-motion";
+import { motion } from "framer-motion";
 import './App.css'
 import Carousel from './components/Carousel'
 import SideBar from './components/SideBar'
@@ -9,6 +9,8 @@ import { supabase } from './supabaseClient';
 import useImageStore from './useImageStore';
 import useUserStore from './UseUserStore';
 import useVoiceStore from './useVoiceStore';
+import Voices from './components/Voices';
+import { div } from 'framer-motion/client';
 
 function App() {
   const [isToggle, setIsToggle] = useState(false);
@@ -48,11 +50,12 @@ function App() {
   }, [setUserId, fetchImages, fetchVoices])
 
   return (
-    <div className='bg-[#FFB8E0] flex w-screen h-screen flex-col items-center justify-center gap-5 overflow-hidden relative'>
+    <div className='bg-[#FFB8E0] flex w-screen  flex-col items-center justify-center gap-5 relative'>
       {session ? (
         <>
           <h1 className='font-Cherry text-7xl text-center my-16 text-gray-800'>おもいで</h1>
           <Carousel />
+          <Voices />
           <SideBar isToggle={isToggle} />
           <motion.div
             initial={{  rotate: -180 }}
@@ -75,7 +78,9 @@ function App() {
           </motion.div>
         </>
       ):(
-        <Login />
+        <div className='h-screen w-full flex items-center justify-center'>
+          <Login />
+        </div>
       )}
       
     </div>

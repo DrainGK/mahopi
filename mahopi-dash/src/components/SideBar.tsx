@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { motion } from "framer-motion";
 import { Plus, Trash2 } from 'lucide-react';
 import useImageStore from '../useImageStore';
+
 import Logout from './Logout';
 import useUserStore from '../UseUserStore';
 import useVoiceStore from '../useVoiceStore';
@@ -79,6 +80,9 @@ const SideBar: React.FC<SideBarProps> = ({ isToggle }) => {
                     {filtered === "album" ? (
                         <>
                             {images.slice(0,5).map((imgItem,i)=>{
+                                if (imgItem.user_id && imgItem.user_id !== user.id) {
+                                    return null; // Skip images that don't belong to the user
+                                  }
                                 return(
                                     <motion.li 
                                         variants={{

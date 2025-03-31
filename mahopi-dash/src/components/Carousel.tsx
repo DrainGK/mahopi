@@ -1,7 +1,8 @@
 import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight, ArrowLeft, Heart, CircleSmall, X } from 'lucide-react';
-import useImageStore from '../useImageStore';
+import useImageStore, { Image } from '../useImageStore';
+import { supabase } from '../supabaseClient';
 
 const LG_SIZE = {
   cardH: 400,
@@ -18,20 +19,73 @@ const SM_SIZE = {
 };
 
 const Carousel: React.FC = () => {
-  const { images, activeIndex, setActiveIndex, loading, error } = useImageStore();
+  const { activeIndex, setActiveIndex, loading, error } = useImageStore();
+  let { images } = useImageStore();
+
+  
 
   const [carouselSizes, setCarouselSizes] = useState(LG_SIZE);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState('');
+  const [album, setAlbum] = useState<Image[]>([]);
+  const [ isLoading, setIsLoading] = useState(false)
+  const [ isError, setIsError] = useState<string | null>(null)
 
   // Fonction pour gérer la navigation dans le carrousel
-  function handleCarousel(direction: number) {
+
+  useEffect(() => {
+    const fetchAllImages = async () => {
+      setIsLoading(true);
+      setIsError(null);
+      console.log(isError,isLoading);
+      
+
+      const { data, error } = await supabase
+        .from('photos')
+        .select('id, file_url, user_id')
+        .order('id', { ascending: true });
+
+      if (error) {
+        console.error('Erreur fetchAllImages:', error);
+        setIsError('Erreur lors du chargement de toutes les images');
+        setIsLoading(false);
+        console.log(isError,isLoading);
+        return;
+      }
+
+      const fetchedAlbum: Image[] = data
+        ? data.map((photo: any) => ({
+            id: photo.id,
+            src: photo.file_url,
+            user_id: photo.user_id,
+          }))
+        : [];
+
+      setAlbum(fetchedAlbum);
+      setIsLoading(false);
+      console.log(isError,isLoading);
+    };
+
+    fetchAllImages();
+  }, [images]);
+
+  function handleCarousel(position: number) {
+    const copy = [...album];
     let newIndex = activeIndex;
-    if (direction > 0) {
-      newIndex = (activeIndex + 1) % images.length; // Défilement circulaire vers la droite
-    } else if (direction < 0) {
-      newIndex = (activeIndex - 1 + images.length) % images.length; // Défilement circulaire vers la gauche
+    if (position > 0) {
+      for (let i = 0; i < position; i++) {
+        const first = copy.shift();
+        if (first) copy.push(first);
+        newIndex = (newIndex + 1) % album.length; // Défilement circulaire
+      }
+    } else if (position < 0) {
+      for (let i = 0; i < -position; i++) {
+        const last = copy.pop();
+        if (last) copy.unshift(last);
+        newIndex = (newIndex - 1 + album.length) % album.length; // Défilement circulaire
+      }
     }
+    setAlbum(copy)
     setActiveIndex(newIndex);
   }
 
@@ -63,14 +117,14 @@ const Carousel: React.FC = () => {
 
   return (
     <div className="relative w-full h-screen flex flex-col items-center justify-between">
-      {images.slice(0, 5).map((img, i) => {
+      {album.slice(0, 5).map((img, i) => {
         // Calculer l'index relatif par rapport à activeIndex
-        const relativeIndex = ((i - activeIndex + images.length) % images.length) - 2;
+        const relativeIndex = i - 2;
         const x = relativeIndex * carouselSizes.xOffset;
         const distance = Math.abs(relativeIndex);
         let y = 0;
         if (distance === 1) y = 60;
-        else if (distance === 2) y = 150;
+        else if (distance === 2) y = 150;        
 
         const rotation = relativeIndex * 5;
 
@@ -114,7 +168,7 @@ const Carousel: React.FC = () => {
           <ArrowLeft size={carouselSizes.icon} />
         </motion.button>
         <ul className="flex mx-6 md:mx-15">
-          {images.map((img, i) => (
+          {album.map((img, i) => (
             <li key={img.id}>
               <motion.div
                 variants={indicatorVariants}

@@ -6,6 +6,7 @@ import useUserStore from './UseUserStore';
 export interface Image {
   id: number;
   src: string;
+  user_id?: string | null;
 }
 
 export interface ImageStore {
@@ -21,11 +22,11 @@ export interface ImageStore {
 }
 
 const initialImages: Image[] = [
-  { id: 0, src: "" },
-  { id: 1, src: "" },
-  { id: 2, src: "" },
-  { id: 3, src: "" },
-  { id: 4, src: "" },
+  { id: 0, src: "", user_id: null },
+  { id: 1, src: "", user_id: null },
+  { id: 2, src: "", user_id: null },
+  { id: 3, src: "", user_id: null },
+  { id: 4, src: "", user_id: null },
 ];
 
 const useImageStore = create<ImageStore>()(
@@ -49,7 +50,7 @@ const useImageStore = create<ImageStore>()(
 
         const { data, error } = await supabase
           .from('photos')
-          .select('id, file_url, slot_index')
+          .select('id, file_url, slot_index, user_id')
           .eq('user_id', userId)
           .order('slot_index', { ascending: true });
 
@@ -62,10 +63,13 @@ const useImageStore = create<ImageStore>()(
         let updatedImages = [...initialImages];
         if (data) {
           data.forEach((photo: any) => {
-            updatedImages[photo.slot_index] = {
-              id: photo.id,
-              src: photo.file_url,
-            };
+            if (photo.slot_index >= 0 && photo.slot_index < updatedImages.length) {
+              updatedImages[photo.slot_index] = {
+                id: photo.id,
+                src: photo.file_url,
+                user_id: photo.user_id,
+              };
+            }
           });
         }
 
