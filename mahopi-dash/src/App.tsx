@@ -10,7 +10,6 @@ import useImageStore from './useImageStore';
 import useUserStore from './UseUserStore';
 import useVoiceStore from './useVoiceStore';
 import Voices from './components/Voices';
-import { div } from 'framer-motion/client';
 
 function App() {
   const [isToggle, setIsToggle] = useState(false);

@@ -157,7 +157,7 @@ const Carousel: React.FC = () => {
           
         );
       })}
-      <div className="absolute w-fit flex justify-between items-center z-5 bottom-1/5 md:bottom-1/8 2xl:bottom-1/5">
+      <div className="absolute w-fit flex justify-between items-center z-5 bottom-1/3">
         <motion.button
           onClick={() => handleCarousel(-1)}
           className="p-4 rounded-full text-[#FFB8E0] bg-white font-bold text-6xl hover:text-[#EC7FA9]"

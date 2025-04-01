@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { supabase } from './supabaseClient';
 import useUserStore from './UseUserStore';
 
@@ -137,7 +136,30 @@ const useVoiceStore = create<VoiceStore>()((set, get) => ({
     },
 
     removeVoices: async (index: number) => {
-        // À implémenter si nécessaire
+        set({ loading: true, error: null});
+        const userId = useUserStore.getState().user.id;
+        const { voices } = get();
+
+        if(!userId || voices[index].file_url === ""){
+            set({ loading: false});
+            return;
+        }
+
+        const { error } = await supabase
+            .from('audios')
+            .delete()
+            .eq('user_id', userId)
+            .eq('slot_index', index);
+        if(error){
+            console.error('Error while removing audio: ', error);
+            set({ loading: false, error: 'Error while removing audio'});
+            return;
+        }
+
+        const updatedVoices = [...voices];
+        updatedVoices[index] = {id: index, file_url: "", title:"", user_id: ""};
+        set({ voices: updatedVoices, loading: false });
+
     },
 }));
 

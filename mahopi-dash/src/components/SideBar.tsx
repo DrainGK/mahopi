@@ -18,7 +18,7 @@ const SideBar: React.FC<SideBarProps> = ({ isToggle }) => {
     const { user } = useUserStore();
     const [ filtered, setFiltered ] = useState("album")
     const { images, uploadImage, removeImage, loading, error } = useImageStore();
-    const { voices} = useVoiceStore();
+    const { voices, removeVoices} = useVoiceStore();
 
     const [ isOpen, setIsOpen ] = useState(false);
     const [ selectedVoiceIndex, setSelectedVoiceIndex ] = useState<number | null>(null);
@@ -40,8 +40,8 @@ const SideBar: React.FC<SideBarProps> = ({ isToggle }) => {
         }
       };
     
-      const handleRemoveImage = (index: number) => {
-        removeImage(index); // Remplace la source par une chaîne vide
+      const handleRemoveFile = (index: number) => {
+        filtered === "album" ? removeImage(index) : removeVoices(index)
       };
 
 
@@ -112,7 +112,7 @@ const SideBar: React.FC<SideBarProps> = ({ isToggle }) => {
                                             />
                                             {imgItem.src &&(
                                                 <motion.span
-                                                    onClick={() => handleRemoveImage(i)}
+                                                    onClick={() => handleRemoveFile(i)}
                                                     style={{ 
                                                         position: 'absolute',
         
@@ -155,8 +155,24 @@ const SideBar: React.FC<SideBarProps> = ({ isToggle }) => {
                                         }}
                                         initial="initial"
                                         whileHover="hover"
-                                        className='w-full mx-auto bg-gray-300 flex items-center justify-center py-2 rounded-lg font-Cherry text-2xl text-white cursor-pointer'
+                                        className='w-full mx-auto bg-gray-300 hover:bg-blue-200 flex items-center justify-center py-2 rounded-lg font-Cherry text-2xl text-white cursor-pointer relative'
                                     >
+                                        {voice.file_url &&(
+                                                <motion.span
+                                                    onClick={() => handleRemoveFile(index)}
+                                                    style={{ 
+                                                        position: 'absolute',
+        
+                                                        top: '0', 
+                                                        right: '0',
+                                                        cursor: 'pointer',
+                                                        zIndex: 15,
+                                                        transform: 'translate(50%, -50%)'
+                                                    }} 
+                                                >
+                                                    <Trash2 size={24} strokeWidth={2} fill="#FFFFFF" color='#FF8A8A'/>
+                                                </motion.span>
+                                            )}
                                         <motion.span
                                                 variants={{
                                                     initial: {rotate:"0deg"},

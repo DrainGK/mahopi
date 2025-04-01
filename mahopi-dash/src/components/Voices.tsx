@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import useVoiceStore, { Voice } from '../useVoiceStore';
 import { supabase } from '../supabaseClient';
+import VoiceButton from './VoiceButton';
+import useUserStore from '../UseUserStore';
 
 const Voices: React.FC = () => {
+  const { user } = useUserStore();
   const [audio, setAudio] = useState<Voice[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [profiles, setProfiles] = useState<{ id: string, name: string }[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(user.id);
 
   const { voices } = useVoiceStore();
 
@@ -65,21 +68,27 @@ const Voices: React.FC = () => {
     : audio;
 
   return (
-    <div>
-      {profiles.map(profile => (
-        <button
-          key={profile.id}
-          onClick={() => setSelectedUserId(profile.id)}
-          style={{ marginRight: '10px' }}
-        >
-          {profile.name}
-        </button>
-      ))}
+    <div className='font-Cherry w-full flex flex-col items-center mb-10'>
 
-      <ul>
+        <h2 className='text-7xl text-zinc-900 mb-20'>きこえる？</h2>
+
+        <div className='text-5xl flex gap-x-4 mb-10'>
+            {profiles.map(profile => (
+                <button
+                className={`${profile.id === selectedUserId ? 'bg-pink-400 text-white' : 'bg-white text-pink-400'}  px-6 py-2 rounded-lg  shadow-pink-950/25 shadow-lg cursor-pointer`}
+                key={profile.id}
+                onClick={() => setSelectedUserId(profile.id)}
+                style={{ marginRight: '10px' }}
+                >
+                {profile.name}
+                </button>
+            ))}
+        </div>
+
+      <ul className='flex w-full justify-around'>
         {filteredAudio.map(voice => (
           <li key={voice.id}>
-            <strong>{voice.title}</strong> - {voice.file_url}
+            <VoiceButton file_url={voice.file_url} title={voice.title} />
           </li>
         ))}
       </ul>

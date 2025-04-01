@@ -40,10 +40,10 @@ const VoiceForm: React.FC<VoiceFormType> = ({ slot_index }) => {
 
     return (
         <form
-            className="bg-pink-300 w-fit rounded-lg flex p-2"
+            className="bg-pink-300 w-full rounded-lg justify-between flex p-2"
             onSubmit={handleSubmit} // Soumission gérée ici
         >
-            <div className="flex flex-col gap-y-2 font-Cherry">
+            <div className="flex flex-col w-[75%] md:w-[80%] gap-y-2 font-Cherry">
                 <input
                     className="text-zinc-800"
                     type="file"
@@ -51,7 +51,7 @@ const VoiceForm: React.FC<VoiceFormType> = ({ slot_index }) => {
                     onChange={handleFileChange} // Met à jour le fichier dans l'état
                 />
                 <input
-                    className="bg-white w-9/10 p-1 rounded-sm"
+                    className="bg-white w-[100%] p-1 rounded-sm"
                     type="text"
                     name="audio-title"
                     id="audio-title"
