@@ -73,6 +73,13 @@ const Voices: React.FC = () => {
         <h2 className='text-7xl text-zinc-900 mb-20'>きこえる？</h2>
 
         <div className='text-5xl flex gap-x-4 mb-10'>
+           { error &&(
+            <p className='text-red-600'>{error}</p>
+           )}
+           { loading &&(
+            <p>Loading...</p>
+           )}
+
             {profiles.map(profile => (
                 <button
                 className={`${profile.id === selectedUserId ? 'bg-pink-400 text-white' : 'bg-white text-pink-400'}  px-6 py-2 rounded-lg  shadow-pink-950/25 shadow-lg cursor-pointer`}

@@ -1,14 +1,14 @@
-import { ArrowRight, Scale } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import useVoiceStore from '../useVoiceStore';
-import React, { useEffect, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import React, {  useState } from 'react';
+import {  motion } from 'framer-motion';
 
 export interface VoiceFormType {
     slot_index: number | null;
 }
 
 const VoiceForm: React.FC<VoiceFormType> = ({ slot_index }) => {
-    const { uploadVoices, loading, error } = useVoiceStore();
+    const { uploadVoices, loading } = useVoiceStore();
     const [file, setFile] = useState<File | null>(null); // État pour le fichier
     const [title, setTitle] = useState<string>(''); // État pour le titre
 
