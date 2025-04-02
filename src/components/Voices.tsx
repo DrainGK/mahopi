@@ -92,7 +92,7 @@ const Voices: React.FC = () => {
             ))}
         </div>
 
-      <ul className='flex w-full justify-around'>
+      <ul className='flex flex-1 flex-wrap w-8/10 mx-auto gap-4 justify-center'>
         {filteredAudio.map(voice => (
           <li key={voice.id}>
             <VoiceButton file_url={voice.file_url} title={voice.title} />

@@ -49,6 +49,7 @@ function App() {
   }, [setUserId, fetchImages, fetchVoices])
 
   return (
+    <div className='overflow-x-hidden'>
     <div className='bg-[#FFB8E0] flex w-screen  flex-col items-center justify-center gap-5 relative'>
       {session ? (
         <>
@@ -82,6 +83,7 @@ function App() {
         </div>
       )}
       
+    </div>
     </div>
   )
 }
